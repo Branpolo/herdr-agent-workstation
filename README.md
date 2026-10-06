@@ -16,7 +16,8 @@ What you get:
 
 - **Agents first.** One sidebar shows which agent is working, blocked or done, across every project.
 - **Persistent.** Everything lives on the server; your desktop only draws it. Detach, lose wifi, switch machines: agents keep going.
-- **Review-oriented.** Git-aware file viewer, diff review beside the chat, GitHub-style markdown preview in your browser, images drawn inline.
+- **Files when you want them, gone when you don't.** One key opens a git-aware file viewer beside the agent and closes it again. Markdown previews GitHub-style in your browser; images draw inline.
+- **Point at code, hand it to the agent.** Comment on diff lines and send them straight into the agent's input ([reviewr](https://github.com/persiyanov/herdr-reviewr): `c`, then `s`), or annotate lines in the file viewer and paste the notes, each with its file and line range (`L`, `a`, then `A` `y`).
 - **Small parts you can swap.** Helix, delta, bat, glow, go-grip, three plugins. Swap any of them.
 - **Fast and light.** Terminal-native, instant response, no IDE process on top of the agents.
 
@@ -27,14 +28,16 @@ The question that decides it: **is your day mostly writing code, or mostly direc
 | | Centre of the screen | Agents across projects | Survives disconnect | Files & diffs beside the agent |
 |---|---|---|---|---|
 | **Zed, VS Code, Cursor** | the editor; agents are a panel or a terminal tab | one window per project; no overview of which agent needs you | agents in an editor terminal are tied to that editor session; many people wrap them in tmux to be safe | yes, the IDE's strength |
-| **Claude Desktop / chat apps** | the conversation | sessions are a list, not a live view of running work per project | the session lives in the app (or the cloud), not in a persistent shell on your dev box | no editor, terminal or git view beside the chat |
+| **Claude Desktop (Code)** | the conversation | a flat "Recents" list of sessions, not grouped by project and no view of who needs you | can run on your machine or a dev box (`/remote`) | you can comment on Claude's *plan*, but there's no file tree, no editor, no diff: file work shows up as "Created a file ›", and you can't open your own file and point at its lines |
 | **tmux / zellij** | whatever you put there | panes don't know what an agent is, so nothing tells you who's blocked | yes | only what you wire up yourself |
-| **This setup (herdr)** | the agent | every agent in every space, with `working` / `blocked` / `done` | yes: the server owns everything, your desktop only draws it | file viewer, diff review, editor and markdown preview one key away |
+| **This setup (herdr)** | the agent, with files one key away | every agent in every space, with `working` / `blocked` / `done` | yes: the server owns everything, your desktop only draws it | file viewer, diff review, editor and markdown preview one key away |
 
 **When to pick the others instead:**
 - **Zed / VS Code / Cursor:** long stretches of hand-writing code, heavy refactoring, debuggers, rich LSP UI, a git UI you click around in. They're still the better editors; this setup keeps a terminal editor (Helix) for quick edits.
-- **Claude Desktop:** thinking, writing and research that isn't tied to a repo, or when you don't want a terminal at all.
+- **Claude Desktop:** you trust the agent end to end and rarely need to look at files, or you don't want a terminal at all.
 - **Plain tmux:** you already have muscle memory and don't need to see agent state at a glance.
+
+This setup sits between the two: like Claude Desktop, the agent gets the screen; like an IDE, the files are right there when you need to check something or point at a line. Toggling the file viewer is the whole trick.
 
 You can mix them: open the same repo in your IDE for a deep editing session while agents keep running in herdr.
 
