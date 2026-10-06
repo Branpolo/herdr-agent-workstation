@@ -129,8 +129,10 @@ Tools in panes run on the **server**, so anything that shells out to `wl-copy`/`
 | Key | Action id |
 |---|---|
 | `prefix+f` | `herdr-file-viewer.open-file-viewer` |
-| `prefix+d` | `persiyanov.reviewr.toggle` |
+| `prefix+d` | `herdr-review` (shell command; see below), wrapping `persiyanov.reviewr.toggle` |
 | `prefix+space` | `herdr-whichkey.open` |
+
+Why the wrapper: reviewr's own toggle opens in the **focused pane's** directory. When focus is on the file viewer (which runs inside its plugin checkout), reviewr reviews the plugin instead of your repo ("No pull request for a detached HEAD", no changes). [`reference/bin/herdr-review`](reference/bin/herdr-review) picks the repo pane in the tab (agents first) and opens reviewr there, and closes it again when reviewr is already open. `herdr-review --dry-run` shows what it would do.
 
 Action ids are `<plugin id>.<action id>` from each plugin's `herdr-plugin.toml`. The plugin id isn't always the repo name.
 

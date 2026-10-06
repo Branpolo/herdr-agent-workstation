@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Toggle reviewr for the repo you're working in, whichever pane has focus.
+
+reviewr's own toggle opens in the focused pane's directory. If that's a plugin pane (the file
+viewer runs inside its plugin checkout), you get a review of the plugin: "detached HEAD", no
+changes. This picks the repo instead: the focused pane if it's a real repo, else a repo pane in
+the same tab (agents first), else anywhere in the workspace. Then it opens reviewr's pane there
+the same way reviewr does. If reviewr is already open in this tab, it closes it (toggle).
+
+Bind it on the server:   [[keys.command]] key = "prefix+d"  type = "shell"  command = "herdr-review"
+Test without changing anything:   herdr-review --dry-run [--pane <pane_id>]
+"""
+import argparse, json, os, subprocess, sys
+
+H = os.environ.get("HERDR_BIN_PATH", "herdr")
+PLUGINS_DIR = os.path.expanduser("~/.config/herdr/plugins/")
+REVIEWR = "persiyanov.reviewr"
+
+def herdr(*args):
+    r = subprocess.run([H, *args], capture_output=True, text=True)
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return {}
+
+def notify(title, body):
+    subprocess.run([H, "notification", "show", title, "--body", body], capture_output=True)
+
+def cwd(p):
+    return p.get("foreground_cwd") or p.get("cwd") or ""
+
+def git_root(d):
+    if not d or d.startswith(PLUGINS_DIR):
+        return None
+    r = subprocess.run(["git", "-C", d, "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+ap = argparse.ArgumentParser()
+ap.add_argument("--dry-run", action="store_true", help="print the decision, change nothing")
+ap.add_argument("--pane", help="pretend this pane is focused (for testing)")
+a = ap.parse_args()
+
+cur = (herdr("pane", "get", a.pane) if a.pane else herdr("pane", "current")).get("result", {}).get("pane")
+if not cur:
+    sys.exit("herdr-review: no focused pane (is a herdr server running?)")
+panes = herdr("pane", "list", "--workspace", cur["workspace_id"]).get("result", {}).get("panes", [])
+tab = [p for p in panes if p["tab_id"] == cur["tab_id"]]
+
+# Toggle off: reviewr already open in this tab.
+open_reviewr = [p for p in tab if p.get("label") == "reviewr"]
+if open_reviewr:
+    for p in open_reviewr:
+        print(f"close reviewr {p['pane_id']} ({cwd(p)})")
+        if not a.dry_run:
+            herdr("pane", "close", p["pane_id"])
+    sys.exit(0)
+
+others = [p for p in tab if p["pane_id"] != cur["pane_id"]]
+others.sort(key=lambda p: not p.get("agent"))  # agent panes first
+rest = [p for p in panes if p["tab_id"] != cur["tab_id"]]
+for p in [cur, *others, *rest]:
+    root = git_root(cwd(p))
+    if root:
+        target = p
+        break
+else:
+    print("no git repo in this workspace")
+    if not a.dry_run:
+        notify("reviewr", "No git repo in this workspace to review")
+    sys.exit(0)
+
+# Split beside the chosen pane when it's in this tab, else beside the focused pane.
+anchor = target if target["tab_id"] == cur["tab_id"] else cur
+print(f"open reviewr in {cwd(target)} (repo {root}) beside {anchor['pane_id']}")
+if not a.dry_run:
+    herdr("plugin", "pane", "open", "--plugin", REVIEWR, "--entrypoint", "pane",
+          "--placement", "split", "--target-pane", anchor["pane_id"], "--direction", "right",
+          "--cwd", cwd(target), "--focus")

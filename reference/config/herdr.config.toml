@@ -10,8 +10,8 @@ description = "file viewer split"
 
 [[keys.command]]
 key = "prefix+d"            # prefix+r is herdr resize_mode
-type = "plugin_action"
-command = "persiyanov.reviewr.toggle"
+type = "shell"              # herdr-review opens reviewr in the repo even when a plugin pane has focus
+command = "herdr-review"
 description = "diff review (reviewr)"
 
 [[keys.command]]
