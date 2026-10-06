@@ -81,6 +81,7 @@ All of these are in [`SPEC.md`](SPEC.md#invariants) with fixes:
 - **`ctrl+b`** is both herdr's prefix and Claude Code's "background this command". Press `ctrl+b ctrl+b`, or change the prefix.
 - **A missing locale or an overridden `TERM`.** You get garbled box drawing, or images that never render.
 - **"Copy failed: install wl-clipboard"** inside a pane. The tool runs on the server, where there's no desktop clipboard. Use the OSC 52 `wl-copy` stand-in from `reference/bin/`.
+- **Shift+Enter submits instead of adding a new line** in the agent. Map it to `ESC`+`Enter` (what Alt+Enter sends) in your terminal: see [`reference/config/kitty.conf`](reference/config/kitty.conf).
 - **Image paste needs image data**, not a copied file. Use plain `ctrl+v`, not the terminal's text-paste shortcut.
 
 ## Reference stack
