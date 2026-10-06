@@ -121,6 +121,10 @@ Pressing `O` on a `.md` file opens a split running [go-grip] (offline, GitHub st
 ### F-3 Image paste into agents
 Nothing to set up: in `--remote`, `ctrl+v` (herdr's `remote_image_paste`) uploads the client's clipboard image to a server temp file and pastes its path. Copy *image data* (screenshot → Copy, browser → Copy Image), not an image *file*. Your terminal's own paste shortcut (e.g. kitty's `ctrl+shift+v`) pastes text only.
 
+### F-5 Clipboard from server-side tools
+Tools in panes run on the **server**, so anything that shells out to `wl-copy`/`xclip`/`xsel` copies into a display nobody is looking at, or fails with "install wl-clipboard" (reviewr's `y` does this). Tools that use the **OSC 52** terminal escape (the file viewer, Claude Code, Helix) already reach your desktop clipboard through herdr.
+→ [`reference/bin/wl-copy`](reference/bin/wl-copy): a stand-in on the server's `PATH` that forwards stdin to the client clipboard via OSC 52. Don't install it on a machine with a real desktop session.
+
 ### F-4 Plugin bindings (reference)
 | Key | Action id |
 |---|---|

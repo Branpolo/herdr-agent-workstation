@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# wl-copy stand-in for a headless server: copies stdin (or the arguments) to the CLIENT's
+# clipboard with the OSC 52 terminal escape, which herdr --remote forwards to your desktop.
+# For tools that shell out to wl-copy/xclip (e.g. reviewr's `y`), where a real clipboard tool
+# would copy into a display nobody is looking at. Options like --type are accepted and ignored.
+set -euo pipefail
+args=()
+for a in "$@"; do [[ $a == -* ]] || args+=("$a"); done
+if (( ${#args[@]} )); then data=$(printf '%s' "${args[*]}" | base64 -w0)
+else data=$(base64 -w0); fi
+# /dev/tty is the pane's terminal even when stdout is a pipe; fail loudly if there is none.
+printf '\033]52;c;%s\a' "$data" > /dev/tty
