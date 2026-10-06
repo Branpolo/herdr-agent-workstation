@@ -21,6 +21,22 @@ What you get:
 - **Small parts you can swap.** Helix, delta, bat, glow, go-grip, three plugins. Swap any of them.
 - **Fast and light.** Terminal-native, instant response, no IDE process on top of the agents.
 
+## Reviewing what the agent changed
+
+Two tools, depending on how closely you're looking. Keys assume the reference bindings in [`reference/config/herdr.config.toml`](reference/config/herdr.config.toml); `prefix` is `ctrl+b`.
+
+**Quick look: file viewer (`prefix+f`)**
+- Changed files show their **diff automatically** (rendered with delta). Markdown renders; everything else is syntax-highlighted.
+- `c` shows changed files only; `]` / `[` jump to the next / previous changed file.
+- `b` switches the diff baseline: **base branch** (everything on this branch) or **`HEAD`** (uncommitted only).
+- `v` cycles a file's views (diff → rendered → source); `D` switches unified / side-by-side.
+
+**Proper review: reviewr (`prefix+d`)**
+- Pick a **scope**: `u` uncommitted, `b` whole branch, `t` **last turn** (only what the agent's most recent turn changed), `g` commits.
+- `j` / `k` move through changed files and the diff follows; `]` walks hunk by hunk.
+- `v` selects lines, `c` comments, **`s` sends every comment into the agent's input**. Review and reply in one place.
+- `3` shows the branch's pull request (needs `gh`, `glab` or `az`).
+
 ## Why not just use…
 
 The question that decides it: **is your day mostly writing code, or mostly directing and reviewing agents?** If it's the second, you want a tool built around agents, with files on the side.
