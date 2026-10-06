@@ -3,8 +3,10 @@ Type=Application
 Name=herdr <host>
 Comment=Attach to the herdr session on <host>
 # .desktop files don't go through a shell: use absolute paths.
-Exec=/usr/bin/kitty --title "herdr <host>" /home/<you>/.local/bin/herdr --remote <host> --remote-keybindings server
-Icon=kitty
+Exec=/usr/bin/kitty --class herdr-devbox --title "herdr <host>" /home/<you>/.local/bin/herdr --remote <host> --remote-keybindings server
+# Icon: copy reference/icons/herdr-devbox.svg to ~/.local/share/icons/hicolor/scalable/apps/
+Icon=herdr-devbox
 Terminal=false
 Categories=Development;
-StartupWMClass=kitty
+# Own window class + icon so the dock doesn't show it as just another kitty
+StartupWMClass=herdr-devbox
