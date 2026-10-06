@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 # herdr-file-viewer `O` handler (config: open = "herdr-fv-open"); the viewer appends the path.
 #   images   -> split pane showing the image (kitty-img-view), any key closes it
-#   markdown -> split pane running go-grip on the Tailscale IP; ctrl+click the URL, q/ctrl+c stops it
+#   markdown -> split pane running go-grip on the Tailscale IP; ctrl+click the URL, ctrl+c stops it
 #   other    -> split pane with hx
+# The path reaches the new pane only as an environment variable (FV_FILE), never inside the
+# command text, so a crafted file name can't inject shell commands into the pane.
 set -u
+# realpath makes the path absolute, so it can never start with "-" and be taken as an option.
 f=$(realpath -- "$1")
 dir=$(dirname -- "$f")
 
-split() {  # split <direction> -> prints new pane id
-  herdr pane split --current --direction "$1" --focus --cwd "$dir" |
-    python3 -c "import json,sys; print(json.load(sys.stdin)[\"result\"][\"pane\"][\"pane_id\"])"
+split() {  # split <direction> [--env K=V ...] -> prints new pane id
+  local direction=$1; shift
+  herdr pane split --current --direction "$direction" --focus --cwd "$dir" --env "FV_FILE=$f" "$@" |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["pane"]["pane_id"])'
 }
 
 free_port() {
@@ -26,21 +30,20 @@ for p in range(6419, 6500):
 PY
 }
 
-q=$(printf %q "$f")
 case "${f,,}" in
   *.md|*.markdown|*.mdx)
     host=$(tailscale ip -4 2>/dev/null | head -1); host=${host:-127.0.0.1}
     port=$(free_port)
-    id=$(split down) || exit 1
-    herdr pane run "$id" "clear; echo \"preview: http://$host:$port/$(basename -- "$q")  (ctrl+click; ctrl+c closes)\"; exec go-grip -b=false -H $host -p $port $q"
+    url="http://$host:$port/$(python3 -c 'import os,sys,urllib.parse; print(urllib.parse.quote(os.path.basename(sys.argv[1])))' "$f")"
+    id=$(split down --env "FV_HOST=$host" --env "FV_PORT=$port" --env "FV_URL=$url") || exit 1
+    herdr pane run "$id" 'clear; printf "preview: %s  (ctrl+click; ctrl+c closes)\n" "$FV_URL"; exec go-grip -b=false -H "$FV_HOST" -p "$FV_PORT" "$FV_FILE"'
     ;;
   *)
+    id=$(split right) || exit 1
     if [[ $(file -b --mime-type -- "$f") == image/* ]]; then
-      id=$(split right) || exit 1
-      herdr pane run "$id" "exec kitty-img-view $q"
+      herdr pane run "$id" 'exec kitty-img-view "$FV_FILE"'
     else
-      id=$(split right) || exit 1
-      herdr pane run "$id" "exec hx $q"
+      herdr pane run "$id" 'exec hx "$FV_FILE"'
     fi
     ;;
 esac
