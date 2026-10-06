@@ -25,7 +25,7 @@ What you get:
 
 ![reviewr beside the agent: uncommitted changes, file tree with +/- counts, inline diff](docs/review.png)
 
-*reviewr (`prefix+d`) beside the agent: 11 changed files, the diff of the selected one, and the scope (`[uncommitted]`) at the top. Comment on lines with `c`, send them to the agent with `s`.*
+*reviewr (`prefix+d`) beside the agent: 11 changed files, the diff of the selected one, and the scope (`[uncommitted]`) at the top. Comment on lines with `c`, send them to the agent with `s`. (Agent conversation mocked up for the screenshot; the review pane is real.)*
 
 Two tools, depending on how closely you're looking. Keys assume the reference bindings in [`reference/config/herdr.config.toml`](reference/config/herdr.config.toml); `prefix` is `ctrl+b`.
 
