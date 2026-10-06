@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+"""Draw a PNG with the kitty graphics protocol, as a quick check that images reach your
+terminal through `herdr --remote`. Usage: kitty-img-test <file.png>
+If you only see the text line, images are not getting through (check TERM, terminal support)."""
+import base64, sys
+
+if len(sys.argv) != 2:
+    sys.exit(__doc__)
+data = base64.b64encode(open(sys.argv[1], "rb").read()).decode()
+chunks = [data[i:i + 4096] for i in range(0, len(data), 4096)]
+out = sys.stdout
+for i, c in enumerate(chunks):
+    more = 1 if i < len(chunks) - 1 else 0
+    head = "f=100,a=T,c=60," if i == 0 else ""
+    out.write(f"\x1b_G{head}m={more};{c}\x1b\\")
+out.write("\n(if you see an image above, images work; if only this line, they do not)\n")

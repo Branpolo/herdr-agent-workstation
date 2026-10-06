@@ -1,0 +1,21 @@
+# herdr config (server). Attach with: herdr --remote <host> --remote-keybindings server
+# so these bindings apply; local custom/plugin bindings are not sent in --remote.
+# Prefix stays at the default ctrl+b. In a claude pane, ctrl+b ctrl+b sends a literal ctrl+b.
+
+[[keys.command]]
+key = "prefix+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "file viewer split"
+
+[[keys.command]]
+key = "prefix+d"            # prefix+r is herdr resize_mode
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "diff review (reviewr)"
+
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "herdr-whichkey.open"
+description = "whichkey menu"

@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Show an image fitted to the terminal via the kitty graphics protocol, wait for a key, exit.
+Used by herdr-fv-open (file viewer `O`). Needs Pillow (any format -> PNG)."""
+import base64, fcntl, io, os, struct, sys, termios, tty
+
+path = sys.argv[1]
+name = os.path.basename(path)
+
+def winsize():
+    try:
+        rows, cols, xpx, ypx = struct.unpack("HHHH", fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, b"\0" * 8))
+        return cols, rows, xpx, ypx
+    except OSError:
+        return 80, 24, 0, 0
+
+def wait_key():
+    if not sys.stdin.isatty():
+        return
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        os.read(fd, 1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+try:
+    from PIL import Image
+    im = Image.open(path)
+    im.seek(0)
+    w, h = im.size
+    im.thumbnail((2000, 2000))  # keep the transfer over --remote small
+    if im.mode not in ("RGB", "RGBA"):
+        im = im.convert("RGBA")
+    buf = io.BytesIO()
+    im.save(buf, "PNG")
+    data = base64.b64encode(buf.getvalue()).decode()
+except Exception as e:
+    print(f"{name}: cannot display ({e})\n\npress any key to close")
+    sys.stdout.flush()
+    wait_key()
+    sys.exit(1)
+
+cols, rows, xpx, ypx = winsize()
+cw = xpx / cols if xpx else 10.0   # cell size in pixels; guess when the pty does not report it
+ch = ypx / rows if ypx else 20.0
+box_c, box_r = max(cols - 1, 1), max(rows - 3, 1)
+iw, ih = im.size
+scale = min(box_c * cw / iw, box_r * ch / ih, 1.0)
+c = max(1, round(iw * scale / cw))
+r = max(1, round(ih * scale / ch))
+
+out = sys.stdout
+out.write("\x1b[2J\x1b[H")
+chunks = [data[i:i + 4096] for i in range(0, len(data), 4096)]
+for i, chunk in enumerate(chunks):
+    head = f"f=100,a=T,q=2,c={c},r={r}," if i == 0 else ""
+    out.write(f"\x1b_G{head}m={1 if i < len(chunks) - 1 else 0};{chunk}\x1b\\")
+out.write(f"\r\n{name}  {w}x{h}  - press any key to close")
+out.flush()
+wait_key()
+out.write("\x1b_Ga=d\x1b\\")
+out.flush()

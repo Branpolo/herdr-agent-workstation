@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# herdr-file-viewer `O` handler (config: open = "herdr-fv-open"); the viewer appends the path.
+#   images   -> split pane showing the image (kitty-img-view), any key closes it
+#   markdown -> split pane running go-grip on the Tailscale IP; ctrl+click the URL, q/ctrl+c stops it
+#   other    -> split pane with hx
+set -u
+f=$(realpath -- "$1")
+dir=$(dirname -- "$f")
+
+split() {  # split <direction> -> prints new pane id
+  herdr pane split --current --direction "$1" --focus --cwd "$dir" |
+    python3 -c "import json,sys; print(json.load(sys.stdin)[\"result\"][\"pane\"][\"pane_id\"])"
+}
+
+free_port() {
+  python3 - <<"PY"
+import socket
+for p in range(6419, 6500):
+    s = socket.socket()
+    try:
+        s.bind(("0.0.0.0", p)); print(p); break
+    except OSError:
+        pass
+    finally:
+        s.close()
+PY
+}
+
+q=$(printf %q "$f")
+case "${f,,}" in
+  *.md|*.markdown|*.mdx)
+    host=$(tailscale ip -4 2>/dev/null | head -1); host=${host:-127.0.0.1}
+    port=$(free_port)
+    id=$(split down) || exit 1
+    herdr pane run "$id" "clear; echo \"preview: http://$host:$port/$(basename -- "$q")  (ctrl+click; ctrl+c closes)\"; exec go-grip -b=false -H $host -p $port $q"
+    ;;
+  *)
+    if [[ $(file -b --mime-type -- "$f") == image/* ]]; then
+      id=$(split right) || exit 1
+      herdr pane run "$id" "exec kitty-img-view $q"
+    else
+      id=$(split right) || exit 1
+      herdr pane run "$id" "exec hx $q"
+    fi
+    ;;
+esac

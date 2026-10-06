@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=herdr <host>
+Comment=Attach to the herdr session on <host>
+# .desktop files don't go through a shell: use absolute paths.
+Exec=/usr/bin/kitty --title "herdr <host>" /home/<you>/.local/bin/herdr --remote <host> --remote-keybindings server
+Icon=kitty
+Terminal=false
+Categories=Development;
+StartupWMClass=kitty

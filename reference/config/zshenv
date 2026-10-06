@@ -1,0 +1,12 @@
+# ~/.zshenv — read by every zsh, including non-interactive ssh commands
+# and shells spawned by herdr. ~/.zshrc still sets the full interactive PATH.
+typeset -U path
+path=("$HOME/.local/bin" $path)
+# nvm default node, without loading nvm (slow)
+if [[ -r "$HOME/.nvm/alias/default" ]]; then
+  _nv=$(<"$HOME/.nvm/alias/default")
+  _nd=("$HOME"/.nvm/versions/node/v${_nv#v}*(N/On[1]))
+  (( $#_nd )) && path=("$_nd[1]/bin" $path)
+  unset _nv _nd
+fi
+export PATH
